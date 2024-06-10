@@ -26,4 +26,30 @@ def auth_fedex():
 class FedexTrackingView(APIView):
     def get(self,req):
         authRes=auth_fedex()
-        return Response({"auth Res":authRes})
+        # Input Data 
+        data=json.dumps({
+            'includeDetailedScans':True,
+            'trackingInfo':[
+                {
+                    'trackingNmberInfo':{
+                        'trackingNumber':122816215025810
+                    }
+                }
+            ]
+        })
+        headers={
+            'Content-Type':'application/json',
+            'X-locale':'en_US',
+            'Authorization':'Bearer'+authRes["access_token"]
+
+
+        }
+        #make API Call
+        response = requests.post(f"{config('FEDEX_BASE_API_URL')}/track/v1/trackingnumbers", data=data, headers=headers)
+
+        if response.status_code ==200:
+
+            return Response({"Tracking Details":response.text})
+        
+        else:
+            return Response({'error':'Failed to featch tracking information '},status=response.status_code)
